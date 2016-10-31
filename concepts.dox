@@ -1,0 +1,128 @@
+/////////////////////////
+// Developer page      //
+// Concepts            //
+/////////////////////////
+/*! \page developer_concepts_page Concepts
+
+\section concepts_intro Introduction
+
+In programming, you often want a function or group of functions that manipulate
+several related objects. This is generally desired due to the usual
+"don't repeat yourself" and similar advice.
+
+As an example, say you have code that has objects representing lots of different
+animals.
+
+\code{.cpp}
+class Cat
+{
+    public:
+        void speak() const { std::cout << "Meow"; }
+};
+
+class Dog
+{
+    public:
+        void speak() const { std::cout << "Woof"; }
+};
+
+class HermitCrab
+{
+    public:
+        void speak() const { std::cout << "(???)"; }
+};
+\endcode
+
+How can we polymorphically use their different speak() functions?
+
+C++ provides two tools to use to accomplish this.
+The first way is to use templates. This doesn't really have a proper term
+in C++, however it is occasionally called "duck typing", so we'll stick with that.
+Given the classes above, we can create a MakeSpeak function
+
+\code{.cpp}
+template<typename AnimalType>
+void MakeSpeak(const AnimalType & a)
+{
+    a.speak();
+}
+
+\endcode
+
+
+The second way is to define a base class with virtual functions, and then write your
+manipulation functions to take pointers or references to that base class.
+The manipulator then call these virtual functions, which are found at runtime via
+dynamic dispatch.
+
+\code{.cpp}
+class Animal
+{
+    public:
+        virtual void speak() const = 0;
+};
+
+class Cat : public Animal
+{
+    public:
+        virtual void speak() const { std::cout << "Meow"; }
+};
+
+class Dog : public Animal
+{
+    public:
+        virtual void speak() const { std::cout << "Woof"; }
+};
+
+class HermitCrab : public Animal
+{
+    public:
+        virtual void speak() const { std::cout << "(???)"; }
+};
+
+
+void MakeSpeak(const Animal & a) { a.speak(); }
+\endcode
+
+
+So what's the difference? Well, there's a couple. Pros and cons for duck typing:
+
+  - Pro: More generic - it could, in the future, handle more than just animals. Ie, a robot, or an alian
+  - Pro: In MakeSpeak, you know the whole type, so you can make copies and do other stuff
+    - No slicing and no annoying cloning functions
+  - Neutral: Duck typing is handled at compile time. There may be a slight (although probably negligible) performance increase from optimizations
+  - Con: Can't have heterogeneous containers (ie, a vector of pets). Could only have a container of dogs, or a container of cats, etc.
+  - Con: Only known at compile time. But sometimes you don't know at compile time
+  - Con: Compiler errors can be horrendous. Theres no way to enforce some kind of typing of the object.
+
+For the inheritence method:
+
+  - Pro: Can have heterogeneous containers
+  - Pro: Runtime flexibility
+  - Neutral: Compiler may not be able to optimize, but that would rarely cause a problem  
+  - Con: Don't know the full type, so no copying. Often need clone functions, etc
+  - Con: Inheritence trees can get pretty complex
+
+
+Which one to use at which time is a pretty philosophical debate. My personal
+view: Use the duck typing method if you don't need heterogeneous containers
+and if everything is going to be known at compile time. Otherwise, use
+inheritence.
+
+Two last points. First, this seems to be the point of view of the STL. For example,
+std::transform. To use an object in std::transform, you just use it - no need to 
+derive from a special transformable class or something.
+
+Second, the duck typing method will (hopefully) be made strong in the adoption of concepts.
+This will allow for compile-type checking of the types passed in as a template. For example,
+you would be able to specify that that whatever class AnimalType is must have a speak function.
+Who knows when this will be adoped in the standard, however.
+
+
+
+
+
+
+
+
+*/
